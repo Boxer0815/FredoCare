@@ -1,11 +1,12 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  TextInput, useColorScheme, Platform, Alert,
+  TextInput, useColorScheme, Platform, Alert, ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useProfil } from '../hooks/useProfil';
 import DatumZeitAuswahl from '../components/DatumZeitAuswahl';
+import { gesundheitsdatenAlsPdfTeilen } from '../utils/pdfExport';
 import type { Geschlecht } from '../types';
 
 const GESCHLECHTER: Geschlecht[] = ['weiblich', 'männlich', 'divers', 'keine Angabe'];
@@ -45,6 +46,7 @@ export default function ProfilScreen() {
   const [geschlecht, setGeschlecht] = useState<Geschlecht | null>(null);
   const [groesse, setGroesse] = useState('');
   const [gewicht, setGewicht] = useState('');
+  const [exportLaeuft, setExportLaeuft] = useState(false);
 
   useEffect(() => {
     if (!laden) {
@@ -74,6 +76,17 @@ export default function ProfilScreen() {
     if (gewichtNum !== null && (gewichtNum < 2 || gewichtNum > 500)) return 'Bitte ein plausibles Gewicht eingeben (2–500 kg).';
     if (alterWert !== null && (alterWert < 0 || alterWert > 130)) return 'Bitte ein plausibles Geburtsdatum eingeben.';
     return null;
+  }
+
+  async function handleExport() {
+    setExportLaeuft(true);
+    try {
+      await gesundheitsdatenAlsPdfTeilen();
+    } catch {
+      Alert.alert('Export fehlgeschlagen', 'Das PDF konnte nicht erstellt werden.');
+    } finally {
+      setExportLaeuft(false);
+    }
   }
 
   async function handleSpeichern() {
@@ -188,6 +201,18 @@ export default function ProfilScreen() {
       <TouchableOpacity style={styles.speichernButton} onPress={handleSpeichern}>
         <Text style={styles.speichernButtonText}>Profil speichern</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.exportButton, exportLaeuft && styles.exportButtonDisabled]}
+        onPress={handleExport}
+        disabled={exportLaeuft}
+      >
+        {exportLaeuft ? (
+          <ActivityIndicator color="#5B8DEF" size="small" />
+        ) : (
+          <Text style={styles.exportButtonText}>PDF exportieren &amp; teilen</Text>
+        )}
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -225,4 +250,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 8,
   },
   speichernButtonText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
+  exportButton: {
+    borderWidth: 2, borderColor: '#5B8DEF', borderRadius: 14, paddingVertical: 15,
+    alignItems: 'center', marginTop: 8,
+  },
+  exportButtonDisabled: { opacity: 0.5 },
+  exportButtonText: { color: '#5B8DEF', fontSize: 17, fontWeight: '600' },
 });
