@@ -5,8 +5,6 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { initDb } from '../db/database';
 
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
   const [bereit, setBereit] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
