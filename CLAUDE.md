@@ -32,10 +32,18 @@ src/
 
 ## Projektstand
 - **Phase 1 (Issue #1):** Symptom-Tracking — abgeschlossen
-  - Tab-Navigation (Übersicht, Symptome, Arztbesuche*, Auswertung*)
+  - Tab-Navigation (Übersicht, Symptome, Arztbesuche, Auswertung)
   - SQLite-Datenbank mit Symptomtypen und Einträgen
   - Symptom erfassen (Modal), bearbeiten und löschen
   - Filter, Gruppierung nach Tag, Leer-Zustände
-  - *Platzhalter für Phase 2/3
-- **Phase 2:** Arztbesuche — geplant
-- **Phase 3:** Auswertungen/Diagramme — geplant
+- **Phase 2 (Issue #2):** Arztbesuche — abgeschlossen
+  - SQLite-Tabelle `arztbesuche` (Datum, Arzt, Fachrichtung, Grund, Befund, Notiz)
+  - Hook `useArztbesuche`, CRUD in `database.ts`
+  - Tab-Screen: Liste nach Monaten gruppiert
+  - Modal `arztbesuch-erfassen`, Stack `arztbesuch-bearbeiten/[id]`
+- **Phase 3:** Auswertungen/Diagramme — abgeschlossen
+  - `react-native-svg` für Expo-Go-kompatible Charts
+  - Eigene Chart-Komponenten: `BalkenChart`, `LinienChart`, `HorizontalBalken`
+  - Auswertungs-Tab mit 5 Sektionen (Zeitraum 7/14/30 Tage wählbar):
+    - Symptome pro Tag, Häufigste Symptome, Intensitäts-Verlauf, Wochentag-Muster, Arztbesuche pro Monat
+- **EAS:** Projekt auf expo.dev verknüpft (`@maxboxer/fredo-care`), Updates via `CI=1 npx eas update --branch main`
