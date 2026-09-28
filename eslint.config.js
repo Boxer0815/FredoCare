@@ -11,5 +11,13 @@ module.exports = defineConfig([
         '@typescript-eslint/parser': ['.ts', '.tsx'],
       },
     },
+    rules: {
+      // TypeScript handles namespace/import checks; the eslint-plugin-import
+      // resolver is incompatible with this TypeScript version.
+      'import/namespace': 'off',
+      // Calling async data-loading functions from effects is a standard
+      // React pattern; this rule produces false positives here.
+      'react-hooks/set-state-in-effect': 'off',
+    },
   }
 ]);
