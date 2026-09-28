@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import type { SymptomTyp, SymptomEintrag, NeuerSymptomEintrag } from '../types';
+import type { SymptomTyp, SymptomEintrag, NeuerSymptomEintrag, Arztbesuch, NeuerArztbesuch } from '../types';
 
 const DB_NAME = 'fredocare.db';
 
@@ -32,6 +32,16 @@ export async function initDb(): Promise<void> {
       intensitaet INTEGER NOT NULL,
       dauer INTEGER,
       ausloser TEXT,
+      notiz TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS arztbesuche (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      datum TEXT NOT NULL,
+      arztname TEXT NOT NULL,
+      fachrichtung TEXT NOT NULL,
+      grund TEXT,
+      befund TEXT,
       notiz TEXT
     );
   `);
@@ -136,4 +146,55 @@ export async function eintragAktualisieren(id: number, e: Partial<NeuerSymptomEi
 export async function eintragLoeschen(id: number): Promise<void> {
   const database = await getDb();
   await database.runAsync('DELETE FROM symptom_eintraege WHERE id = ?', id);
+}
+
+// ── Arztbesuche ──────────────────────────────────────────────────────────────
+
+export async function alleArztbesuche(): Promise<Arztbesuch[]> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<{
+    id: number; datum: string; arztname: string; fachrichtung: string;
+    grund: string | null; befund: string | null; notiz: string | null;
+  }>('SELECT * FROM arztbesuche ORDER BY datum DESC');
+  return rows.map((r) => ({
+    id: r.id,
+    datum: r.datum,
+    arztname: r.arztname,
+    fachrichtung: r.fachrichtung,
+    grund: r.grund,
+    befund: r.befund,
+    notiz: r.notiz,
+  }));
+}
+
+export async function arztbesuchAnlegen(b: NeuerArztbesuch): Promise<number> {
+  const database = await getDb();
+  const result = await database.runAsync(
+    `INSERT INTO arztbesuche (datum, arztname, fachrichtung, grund, befund, notiz)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    b.datum, b.arztname, b.fachrichtung,
+    b.grund ?? null, b.befund ?? null, b.notiz ?? null
+  );
+  return result.lastInsertRowId;
+}
+
+export async function arztbesuchAktualisieren(id: number, b: Partial<NeuerArztbesuch>): Promise<void> {
+  const database = await getDb();
+  await database.runAsync(
+    `UPDATE arztbesuche SET
+       datum        = COALESCE(?, datum),
+       arztname     = COALESCE(?, arztname),
+       fachrichtung = COALESCE(?, fachrichtung),
+       grund        = ?,
+       befund       = ?,
+       notiz        = ?
+     WHERE id = ?`,
+    b.datum ?? null, b.arztname ?? null, b.fachrichtung ?? null,
+    b.grund ?? null, b.befund ?? null, b.notiz ?? null, id
+  );
+}
+
+export async function arztbesuchLoeschen(id: number): Promise<void> {
+  const database = await getDb();
+  await database.runAsync('DELETE FROM arztbesuche WHERE id = ?', id);
 }

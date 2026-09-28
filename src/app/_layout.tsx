@@ -31,6 +31,14 @@ export default function RootLayout() {
           name="symptom-bearbeiten/[id]"
           options={{ title: 'Eintrag bearbeiten' }}
         />
+        <Stack.Screen
+          name="arztbesuch-erfassen"
+          options={{ presentation: 'modal', title: 'Arztbesuch erfassen' }}
+        />
+        <Stack.Screen
+          name="arztbesuch-bearbeiten/[id]"
+          options={{ title: 'Arztbesuch bearbeiten' }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </>

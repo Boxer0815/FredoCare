@@ -20,3 +20,15 @@ export interface SymptomEintrag {
 }
 
 export type NeuerSymptomEintrag = Omit<SymptomEintrag, 'id' | 'symptomTypName' | 'symptomTypIcon' | 'symptomTypFarbe'>;
+
+export interface Arztbesuch {
+  id: number;
+  datum: string; // ISO 8601
+  arztname: string;
+  fachrichtung: string;
+  grund?: string | null;
+  befund?: string | null;
+  notiz?: string | null;
+}
+
+export type NeuerArztbesuch = Omit<Arztbesuch, 'id'>;
