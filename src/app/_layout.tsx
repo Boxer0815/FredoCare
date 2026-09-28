@@ -1,15 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { initDb } from '../db/database';
 
 export default function RootLayout() {
   const [bereit, setBereit] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
 
   useEffect(() => {
-    initDb().then(() => setBereit(true));
+    initDb()
+      .then(() => setBereit(true))
+      .catch((e: unknown) => setFehler(String(e)));
   }, []);
+
+  if (fehler) {
+    return (
+      <View style={styles.ladescreen}>
+        <Text style={styles.fehlerText}>Datenbankfehler:{'\n'}{fehler}</Text>
+      </View>
+    );
+  }
 
   if (!bereit) {
     return (
@@ -51,4 +62,5 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   ladescreen: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  fehlerText: { color: 'red', textAlign: 'center', padding: 20, fontSize: 14 },
 });
