@@ -2,11 +2,11 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   TextInput, useColorScheme, Platform, Alert,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useEintraege, useSymptomTypen } from '../hooks/useSymptome';
 import IntensitaetsBadge from '../components/IntensitaetsBadge';
+import IntensitaetsAuswahl from '../components/IntensitaetsAuswahl';
 import DatumZeitAuswahl from '../components/DatumZeitAuswahl';
 
 export default function SymptomErfassenScreen() {
@@ -139,16 +139,7 @@ export default function SymptomErfassenScreen() {
         Intensität <IntensitaetsBadge wert={intensitaet} />
       </Text>
       <View style={[styles.karte, { backgroundColor: kartenHg }]}>
-        <Slider
-          minimumValue={1}
-          maximumValue={10}
-          step={1}
-          value={intensitaet}
-          onValueChange={setIntensitaet}
-          minimumTrackTintColor="#5B8DEF"
-          maximumTrackTintColor="#E5E5EA"
-          thumbTintColor="#5B8DEF"
-        />
+        <IntensitaetsAuswahl wert={intensitaet} onChange={setIntensitaet} />
         <View style={styles.sliderLabels}>
           <Text style={{ color: '#34C759', fontSize: 12 }}>Schwach (1)</Text>
           <Text style={{ color: '#FF3B30', fontSize: 12 }}>Stark (10)</Text>
