@@ -4,16 +4,17 @@ import type { SymptomTyp, SymptomEintrag, NeuerSymptomEintrag, Arztbesuch, Neuer
 const DB_NAME = 'fredocare.db';
 
 let db: SQLite.SQLiteDatabase | null = null;
+let initPromise: Promise<void> | null = null;
 
 export async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (!db) {
-    db = await SQLite.openDatabaseAsync(DB_NAME);
-  }
-  return db;
+  if (!initPromise) initPromise = initDb();
+  await initPromise;
+  return db!;
 }
 
 export async function initDb(): Promise<void> {
-  const database = await getDb();
+  if (!db) db = await SQLite.openDatabaseAsync(DB_NAME);
+  const database = db;
   await database.execAsync(`
     PRAGMA journal_mode = WAL;
 

@@ -1,19 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
-import { initDb } from '../db/database';
 
 export default function RootLayout() {
-  const [bereit, setBereit] = useState(false);
-  const [fehler, setFehler] = useState<string | null>(null);
-
-  useEffect(() => {
-    initDb()
-      .then(() => setBereit(true))
-      .catch((e: unknown) => setFehler(String(e)));
-  }, []);
-
   return (
     <>
       <Stack>
@@ -40,26 +28,6 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="auto" />
-      {!bereit && !fehler && (
-        <View style={styles.ladeOverlay}>
-          <ActivityIndicator size="large" color="#5B8DEF" />
-        </View>
-      )}
-      {fehler && (
-        <View style={styles.ladeOverlay}>
-          <Text style={styles.fehlerText}>DB-Fehler:{'\n'}{fehler}</Text>
-        </View>
-      )}
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  ladeOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fehlerText: { color: 'red', textAlign: 'center', padding: 20, fontSize: 14 },
-});
