@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { initDb } from '../db/database';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [bereit, setBereit] = useState(false);
@@ -10,8 +13,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     initDb()
-      .then(() => setBereit(true))
-      .catch((e: unknown) => setFehler(String(e)));
+      .then(() => { setBereit(true); SplashScreen.hideAsync(); })
+      .catch((e: unknown) => { setFehler(String(e)); SplashScreen.hideAsync(); });
   }, []);
 
   if (fehler) {
