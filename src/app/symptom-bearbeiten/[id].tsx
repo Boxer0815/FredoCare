@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useEintraege, useSymptomTypen } from '../../hooks/useSymptome';
 import IntensitaetsBadge from '../../components/IntensitaetsBadge';
+import DatumZeitAuswahl from '../../components/DatumZeitAuswahl';
 import type { SymptomEintrag } from '../../types';
 
 export default function SymptomBearbeitenScreen() {
@@ -18,7 +19,7 @@ export default function SymptomBearbeitenScreen() {
   const [eintrag, setEintrag] = useState<SymptomEintrag | null>(null);
   const [gewaehlterId, setGewaehlterId] = useState<number | null>(null);
   const [intensitaet, setIntensitaet] = useState(5);
-  const [datum, setDatum] = useState('');
+  const [datum, setDatum] = useState(new Date());
   const [dauer, setDauer] = useState('');
   const [ausloser, setAusloser] = useState('');
   const [notiz, setNotiz] = useState('');
@@ -30,7 +31,7 @@ export default function SymptomBearbeitenScreen() {
       setEintrag(gefunden);
       setGewaehlterId(gefunden.symptomTypId);
       setIntensitaet(gefunden.intensitaet);
-      setDatum(gefunden.datum);
+      setDatum(new Date(gefunden.datum));
       setDauer(gefunden.dauer ? String(gefunden.dauer) : '');
       setAusloser(gefunden.ausloser ?? '');
       setNotiz(gefunden.notiz ?? '');
@@ -55,7 +56,7 @@ export default function SymptomBearbeitenScreen() {
     if (!gewaehlterId) return;
     await aktualisieren(Number(id), {
       symptomTypId: gewaehlterId,
-      datum,
+      datum: datum.toISOString(),
       intensitaet,
       dauer: dauer ? parseInt(dauer, 10) : null,
       ausloser: ausloser.trim() || null,
@@ -127,18 +128,7 @@ export default function SymptomBearbeitenScreen() {
 
       {/* Datum */}
       <Text style={[styles.label, { color: textFarbe }]}>Zeitpunkt</Text>
-      <View style={[styles.karte, { backgroundColor: kartenHg }]}>
-        <TextInput
-          style={[styles.eingabe, { backgroundColor: eingabeHg, color: textFarbe }]}
-          value={datum}
-          onChangeText={setDatum}
-          placeholder="ISO-Datum"
-          placeholderTextColor="#8E8E93"
-        />
-        <TouchableOpacity onPress={() => setDatum(new Date().toISOString())}>
-          <Text style={{ color: '#5B8DEF', fontSize: 13, marginTop: 6 }}>Jetzt verwenden</Text>
-        </TouchableOpacity>
-      </View>
+      <DatumZeitAuswahl wert={datum} onChange={setDatum} dunkel={dunkel} />
 
       {/* Optionale Felder */}
       <TouchableOpacity

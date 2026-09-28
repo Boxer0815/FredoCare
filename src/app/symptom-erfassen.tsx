@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useEintraege, useSymptomTypen } from '../hooks/useSymptome';
 import IntensitaetsBadge from '../components/IntensitaetsBadge';
+import DatumZeitAuswahl from '../components/DatumZeitAuswahl';
 
 export default function SymptomErfassenScreen() {
   const dunkel = useColorScheme() === 'dark';
@@ -15,7 +16,7 @@ export default function SymptomErfassenScreen() {
 
   const [gewaehlterId, setGewaehlterId] = useState<number | null>(null);
   const [intensitaet, setIntensitaet] = useState(5);
-  const [datum, setDatum] = useState(new Date().toISOString());
+  const [datum, setDatum] = useState(new Date());
   const [optionalOffen, setOptionalOffen] = useState(false);
   const [dauer, setDauer] = useState('');
   const [ausloser, setAusloser] = useState('');
@@ -41,7 +42,7 @@ export default function SymptomErfassenScreen() {
     }
     await hinzufuegen({
       symptomTypId: gewaehlterId,
-      datum,
+      datum: datum.toISOString(),
       intensitaet,
       dauer: dauer ? parseInt(dauer, 10) : null,
       ausloser: ausloser.trim() || null,
@@ -156,18 +157,7 @@ export default function SymptomErfassenScreen() {
 
       {/* Datum/Zeit */}
       <Text style={[styles.label, { color: textFarbe }]}>Zeitpunkt</Text>
-      <View style={[styles.karte, { backgroundColor: kartenHg }]}>
-        <TextInput
-          style={[styles.eingabe, { backgroundColor: eingabeHg, color: textFarbe }]}
-          value={datum}
-          onChangeText={setDatum}
-          placeholder="ISO-Datum (z.B. 2025-01-15T14:30:00)"
-          placeholderTextColor="#8E8E93"
-        />
-        <TouchableOpacity onPress={() => setDatum(new Date().toISOString())}>
-          <Text style={{ color: '#5B8DEF', fontSize: 13, marginTop: 6 }}>Jetzt verwenden</Text>
-        </TouchableOpacity>
-      </View>
+      <DatumZeitAuswahl wert={datum} onChange={setDatum} dunkel={dunkel} />
 
       {/* Optionale Felder */}
       <TouchableOpacity
