@@ -5,6 +5,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useArztbesuche } from '../../hooks/useArztbesuche';
+import DatumZeitAuswahl from '../../components/DatumZeitAuswahl';
 import type { Arztbesuch } from '../../types';
 
 const FACHRICHTUNGEN = [
@@ -20,7 +21,7 @@ export default function ArztbesuchBearbeitenScreen() {
   const [besuch, setBesuch] = useState<Arztbesuch | null>(null);
   const [arztname, setArztname] = useState('');
   const [fachrichtung, setFachrichtung] = useState('Allgemein');
-  const [datum, setDatum] = useState('');
+  const [datum, setDatum] = useState(new Date());
   const [grund, setGrund] = useState('');
   const [befund, setBefund] = useState('');
   const [notiz, setNotiz] = useState('');
@@ -32,7 +33,7 @@ export default function ArztbesuchBearbeitenScreen() {
       setBesuch(gefunden);
       setArztname(gefunden.arztname);
       setFachrichtung(gefunden.fachrichtung);
-      setDatum(gefunden.datum.slice(0, 10));
+      setDatum(new Date(gefunden.datum));
       setGrund(gefunden.grund ?? '');
       setBefund(gefunden.befund ?? '');
       setNotiz(gefunden.notiz ?? '');
@@ -58,7 +59,7 @@ export default function ArztbesuchBearbeitenScreen() {
     await aktualisieren(Number(id), {
       arztname: arztname.trim(),
       fachrichtung,
-      datum,
+      datum: datum.toISOString().slice(0, 10),
       grund: grund.trim() || null,
       befund: befund.trim() || null,
       notiz: notiz.trim() || null,
@@ -88,19 +89,7 @@ export default function ArztbesuchBearbeitenScreen() {
     >
       {/* Datum */}
       <Text style={[styles.label, { color: textFarbe }]}>Datum</Text>
-      <View style={[styles.karte, { backgroundColor: kartenHg }]}>
-        <TextInput
-          style={[styles.eingabe, { backgroundColor: eingabeHg, color: textFarbe }]}
-          value={datum}
-          onChangeText={setDatum}
-          placeholder="JJJJ-MM-TT"
-          placeholderTextColor="#8E8E93"
-          keyboardType="numbers-and-punctuation"
-        />
-        <TouchableOpacity onPress={() => setDatum(new Date().toISOString().slice(0, 10))}>
-          <Text style={{ color: '#5B8DEF', fontSize: 13, marginTop: 6 }}>Heute verwenden</Text>
-        </TouchableOpacity>
-      </View>
+      <DatumZeitAuswahl wert={datum} onChange={setDatum} dunkel={dunkel} nurDatum />
 
       {/* Arztname */}
       <Text style={[styles.label, { color: textFarbe }]}>Arzt / Praxis</Text>

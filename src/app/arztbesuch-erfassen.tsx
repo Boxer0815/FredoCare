@@ -5,6 +5,7 @@ import {
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useArztbesuche } from '../hooks/useArztbesuche';
+import DatumZeitAuswahl from '../components/DatumZeitAuswahl';
 
 const FACHRICHTUNGEN = [
   'Allgemein', 'Neurologie', 'HNO', 'Kardiologie',
@@ -17,7 +18,7 @@ export default function ArztbesuchErfassenScreen() {
 
   const [arztname, setArztname] = useState('');
   const [fachrichtung, setFachrichtung] = useState('Allgemein');
-  const [datum, setDatum] = useState(new Date().toISOString().slice(0, 10));
+  const [datum, setDatum] = useState(new Date());
   const [optionalOffen, setOptionalOffen] = useState(false);
   const [grund, setGrund] = useState('');
   const [befund, setBefund] = useState('');
@@ -36,7 +37,7 @@ export default function ArztbesuchErfassenScreen() {
     await hinzufuegen({
       arztname: arztname.trim(),
       fachrichtung,
-      datum,
+      datum: datum.toISOString().slice(0, 10),
       grund: grund.trim() || null,
       befund: befund.trim() || null,
       notiz: notiz.trim() || null,
@@ -52,19 +53,7 @@ export default function ArztbesuchErfassenScreen() {
     >
       {/* Datum */}
       <Text style={[styles.label, { color: textFarbe }]}>Datum</Text>
-      <View style={[styles.karte, { backgroundColor: kartenHg }]}>
-        <TextInput
-          style={[styles.eingabe, { backgroundColor: eingabeHg, color: textFarbe }]}
-          value={datum}
-          onChangeText={setDatum}
-          placeholder="JJJJ-MM-TT"
-          placeholderTextColor="#8E8E93"
-          keyboardType="numbers-and-punctuation"
-        />
-        <TouchableOpacity onPress={() => setDatum(new Date().toISOString().slice(0, 10))}>
-          <Text style={{ color: '#5B8DEF', fontSize: 13, marginTop: 6 }}>Heute verwenden</Text>
-        </TouchableOpacity>
-      </View>
+      <DatumZeitAuswahl wert={datum} onChange={setDatum} dunkel={dunkel} nurDatum />
 
       {/* Arztname */}
       <Text style={[styles.label, { color: textFarbe }]}>Arzt / Praxis</Text>

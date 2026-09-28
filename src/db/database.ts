@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import type { SymptomTyp, SymptomEintrag, NeuerSymptomEintrag, Arztbesuch, NeuerArztbesuch } from '../types';
+import type { SymptomTyp, SymptomEintrag, NeuerSymptomEintrag, Arztbesuch, NeuerArztbesuch, Profil, Geschlecht } from '../types';
 
 const DB_NAME = 'fredocare.db';
 
@@ -34,6 +34,18 @@ export async function initDb(): Promise<void> {
       ausloser TEXT,
       notiz TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS profil (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      vorname TEXT NOT NULL DEFAULT '',
+      nachname TEXT NOT NULL DEFAULT '',
+      geburtsdatum TEXT,
+      geschlecht TEXT,
+      groesse INTEGER,
+      gewicht REAL
+    );
+
+    INSERT OR IGNORE INTO profil (id) VALUES (1);
 
     CREATE TABLE IF NOT EXISTS arztbesuche (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -197,4 +209,31 @@ export async function arztbesuchAktualisieren(id: number, b: Partial<NeuerArztbe
 export async function arztbesuchLoeschen(id: number): Promise<void> {
   const database = await getDb();
   await database.runAsync('DELETE FROM arztbesuche WHERE id = ?', id);
+}
+
+// ── Profil ───────────────────────────────────────────────────────────────────
+
+export async function profilLaden(): Promise<Profil> {
+  const database = await getDb();
+  const row = await database.getFirstAsync<{
+    vorname: string; nachname: string; geburtsdatum: string | null;
+    geschlecht: string | null; groesse: number | null; gewicht: number | null;
+  }>('SELECT * FROM profil WHERE id = 1');
+  return {
+    vorname: row?.vorname ?? '',
+    nachname: row?.nachname ?? '',
+    geburtsdatum: row?.geburtsdatum ?? null,
+    geschlecht: (row?.geschlecht as Geschlecht | null) ?? null,
+    groesse: row?.groesse ?? null,
+    gewicht: row?.gewicht ?? null,
+  };
+}
+
+export async function profilSpeichern(p: Profil): Promise<void> {
+  const database = await getDb();
+  await database.runAsync(
+    `UPDATE profil SET vorname=?, nachname=?, geburtsdatum=?, geschlecht=?, groesse=?, gewicht=? WHERE id=1`,
+    p.vorname, p.nachname, p.geburtsdatum ?? null,
+    p.geschlecht ?? null, p.groesse ?? null, p.gewicht ?? null
+  );
 }

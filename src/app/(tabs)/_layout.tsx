@@ -1,5 +1,5 @@
-import { Tabs } from 'expo-router';
-import { useColorScheme, Text } from 'react-native';
+import { Tabs, router } from 'expo-router';
+import { useColorScheme, Text, TouchableOpacity } from 'react-native';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return (
@@ -34,6 +34,11 @@ export default function TabsLayout() {
         options={{
           title: 'Übersicht',
           tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          headerRight: () => (
+            <TouchableOpacity onPress={() => router.push('/profil' as never)} style={{ marginRight: 16 }}>
+              <Text style={{ fontSize: 24 }}>👤</Text>
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen

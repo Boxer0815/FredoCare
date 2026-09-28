@@ -32,3 +32,14 @@ export interface Arztbesuch {
 }
 
 export type NeuerArztbesuch = Omit<Arztbesuch, 'id'>;
+
+export type Geschlecht = 'weiblich' | 'männlich' | 'divers' | 'keine Angabe';
+
+export interface Profil {
+  vorname: string;
+  nachname: string;
+  geburtsdatum: string | null; // ISO date YYYY-MM-DD
+  geschlecht: Geschlecht | null;
+  groesse: number | null; // cm
+  gewicht: number | null; // kg
+}
