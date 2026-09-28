@@ -39,6 +39,10 @@ export default function RootLayout() {
           name="arztbesuch-bearbeiten/[id]"
           options={{ title: 'Arztbesuch bearbeiten' }}
         />
+        <Stack.Screen
+          name="profil"
+          options={{ title: 'Mein Profil' }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </>
