@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
 import { initDb } from '../db/database';
 
 export default function RootLayout() {
@@ -11,25 +10,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     initDb()
-      .then(() => { setBereit(true); SplashScreen.hideAsync(); })
-      .catch((e: unknown) => { setFehler(String(e)); SplashScreen.hideAsync(); });
+      .then(() => setBereit(true))
+      .catch((e: unknown) => setFehler(String(e)));
   }, []);
-
-  if (fehler) {
-    return (
-      <View style={styles.ladescreen}>
-        <Text style={styles.fehlerText}>Datenbankfehler:{'\n'}{fehler}</Text>
-      </View>
-    );
-  }
-
-  if (!bereit) {
-    return (
-      <View style={styles.ladescreen}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   return (
     <>
@@ -57,11 +40,26 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="auto" />
+      {!bereit && !fehler && (
+        <View style={styles.ladeOverlay}>
+          <ActivityIndicator size="large" color="#5B8DEF" />
+        </View>
+      )}
+      {fehler && (
+        <View style={styles.ladeOverlay}>
+          <Text style={styles.fehlerText}>DB-Fehler:{'\n'}{fehler}</Text>
+        </View>
+      )}
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  ladescreen: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  ladeOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   fehlerText: { color: 'red', textAlign: 'center', padding: 20, fontSize: 14 },
 });
