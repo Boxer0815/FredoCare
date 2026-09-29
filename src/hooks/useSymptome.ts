@@ -28,12 +28,12 @@ export function useEintraege() {
     await laden_();
   }, [laden_]);
 
-  const aktualisieren = useCallback(async (id: number, e: Partial<NeuerSymptomEintrag>) => {
+  const aktualisieren = useCallback(async (id: string, e: NeuerSymptomEintrag) => {
     await eintragAktualisieren(id, e);
     await laden_();
   }, [laden_]);
 
-  const loeschen = useCallback(async (id: number) => {
+  const loeschen = useCallback(async (id: string) => {
     await eintragLoeschen(id);
     await laden_();
   }, [laden_]);
@@ -60,7 +60,7 @@ export function useSymptomTypen() {
     return typ;
   }, [laden_]);
 
-  const loeschen = useCallback(async (id: number) => {
+  const loeschen = useCallback(async (id: string) => {
     await symptomTypLoeschen(id);
     await laden_();
   }, [laden_]);

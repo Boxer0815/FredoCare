@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { Alert } from 'react-native';
 import { profilLaden, alleEintraege, alleArztbesuche } from '../db/database';
 import type { Profil, SymptomEintrag, Arztbesuch } from '../types';
+import { dauerMinuten } from '../types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,8 @@ function bmi(profil: Profil): string {
   return `${wert.toFixed(1)} (${kategorie})`;
 }
 
-function dauerText(minuten: number | null | undefined): string {
+function dauerText(e: Pick<SymptomEintrag, 'datum' | 'endDate'>): string {
+  const minuten = dauerMinuten(e);
   if (!minuten) return '–';
   if (minuten < 60) return `${minuten} Min.`;
   const h = Math.floor(minuten / 60);
@@ -81,7 +83,7 @@ function symptomZeilen(eintraege: SymptomEintrag[]): string {
       <td>${escHtml(formatDatumZeit(e.datum))}</td>
       <td>${escHtml(e.symptomTypName)}</td>
       <td><span class="badge" style="background:${intensitaetFarbe(e.intensitaet)}">${e.intensitaet}</span></td>
-      <td>${dauerText(e.dauer)}</td>
+      <td>${dauerText(e)}</td>
       <td>${escHtml(e.ausloser)}</td>
       <td>${escHtml(e.notiz)}</td>
     </tr>`).join('');
@@ -252,7 +254,7 @@ function bauHtml(profil: Profil, eintraege: SymptomEintrag[], besuche: Arztbesuc
 // ── Arztbericht-HTML ──────────────────────────────────────────────────────────
 
 function symptomZusammenfassung(eintraege: SymptomEintrag[]): string {
-  const map = new Map<number, {
+  const map = new Map<string, {
     name: string; icon: string; anzahl: number;
     sumInt: number; maxInt: number; tage: Set<string>;
   }>();

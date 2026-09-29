@@ -14,7 +14,7 @@ export default function SymptomErfassenScreen() {
   const { hinzufuegen } = useEintraege();
   const { typen, anlegen: typAnlegen } = useSymptomTypen();
 
-  const [gewaehlterId, setGewaehlterId] = useState<number | null>(null);
+  const [gewaehlterId, setGewaehlterId] = useState<string | null>(null);
   const [intensitaet, setIntensitaet] = useState(5);
   const [datum, setDatum] = useState(new Date());
   const [optionalOffen, setOptionalOffen] = useState(false);
@@ -40,11 +40,16 @@ export default function SymptomErfassenScreen() {
       Alert.alert('Kein Symptom gewählt', 'Bitte wähle ein Symptom aus.');
       return;
     }
+    const dauerMin = dauer ? parseInt(dauer, 10) : 0;
+    const endDate = dauerMin > 0
+      ? new Date(datum.getTime() + dauerMin * 60000).toISOString()
+      : null;
     await hinzufuegen({
       symptomTypId: gewaehlterId,
       datum: datum.toISOString(),
+      endDate,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       intensitaet,
-      dauer: dauer ? parseInt(dauer, 10) : null,
       ausloser: ausloser.trim() || null,
       notiz: notiz.trim() || null,
     });

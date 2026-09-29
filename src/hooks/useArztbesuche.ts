@@ -25,12 +25,12 @@ export function useArztbesuche() {
     await laden_();
   }, [laden_]);
 
-  const aktualisieren = useCallback(async (id: number, b: Partial<NeuerArztbesuch>) => {
+  const aktualisieren = useCallback(async (id: string, b: NeuerArztbesuch) => {
     await arztbesuchAktualisieren(id, b);
     await laden_();
   }, [laden_]);
 
-  const loeschen = useCallback(async (id: number) => {
+  const loeschen = useCallback(async (id: string) => {
     await arztbesuchLoeschen(id);
     await laden_();
   }, [laden_]);

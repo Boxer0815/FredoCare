@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import type { SymptomEintrag } from '../types';
+import { dauerMinuten } from '../types';
 import IntensitaetsBadge from './IntensitaetsBadge';
 
 interface Props {
@@ -13,6 +14,7 @@ function formatZeit(datum: string): string {
 
 export default function EintragKarte({ eintrag, onPress }: Props) {
   const dunkel = useColorScheme() === 'dark';
+  const dauer = dauerMinuten(eintrag);
   return (
     <TouchableOpacity
       style={[styles.karte, { backgroundColor: dunkel ? '#2C2C2E' : '#FFF' }]}
@@ -31,11 +33,11 @@ export default function EintragKarte({ eintrag, onPress }: Props) {
           </Text>
           <IntensitaetsBadge wert={eintrag.intensitaet} />
         </View>
-        {(eintrag.dauer || eintrag.ausloser || eintrag.notiz) ? (
+        {(dauer || eintrag.ausloser || eintrag.notiz) ? (
           <View style={styles.details}>
-            {eintrag.dauer ? (
+            {dauer ? (
               <Text style={[styles.detail, { color: dunkel ? '#8E8E93' : '#6C6C70' }]}>
-                ⏱ {eintrag.dauer} Min.
+                ⏱ {dauer} Min.
               </Text>
             ) : null}
             {eintrag.ausloser ? (

@@ -9,6 +9,7 @@ import IntensitaetsBadge from '../../components/IntensitaetsBadge';
 import IntensitaetsAuswahl from '../../components/IntensitaetsAuswahl';
 import DatumZeitAuswahl from '../../components/DatumZeitAuswahl';
 import type { SymptomEintrag } from '../../types';
+import { dauerMinuten } from '../../types';
 
 export default function SymptomBearbeitenScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,7 +18,7 @@ export default function SymptomBearbeitenScreen() {
   const { typen } = useSymptomTypen();
 
   const [eintrag, setEintrag] = useState<SymptomEintrag | null>(null);
-  const [gewaehlterId, setGewaehlterId] = useState<number | null>(null);
+  const [gewaehlterId, setGewaehlterId] = useState<string | null>(null);
   const [intensitaet, setIntensitaet] = useState(5);
   const [datum, setDatum] = useState(new Date());
   const [dauer, setDauer] = useState('');
@@ -26,16 +27,17 @@ export default function SymptomBearbeitenScreen() {
   const [optionalOffen, setOptionalOffen] = useState(false);
 
   useEffect(() => {
-    const gefunden = eintraege.find((e) => e.id === Number(id));
+    const gefunden = eintraege.find((e) => e.id === id);
     if (gefunden) {
       setEintrag(gefunden);
       setGewaehlterId(gefunden.symptomTypId);
       setIntensitaet(gefunden.intensitaet);
       setDatum(new Date(gefunden.datum));
-      setDauer(gefunden.dauer ? String(gefunden.dauer) : '');
+      const mins = dauerMinuten(gefunden);
+      setDauer(mins ? String(mins) : '');
       setAusloser(gefunden.ausloser ?? '');
       setNotiz(gefunden.notiz ?? '');
-      if (gefunden.dauer || gefunden.ausloser || gefunden.notiz) setOptionalOffen(true);
+      if (mins || gefunden.ausloser || gefunden.notiz) setOptionalOffen(true);
     }
   }, [eintraege, id]);
 
@@ -54,11 +56,16 @@ export default function SymptomBearbeitenScreen() {
 
   async function speichern() {
     if (!gewaehlterId) return;
-    await aktualisieren(Number(id), {
+    const dauerMin = dauer ? parseInt(dauer, 10) : 0;
+    const endDate = dauerMin > 0
+      ? new Date(datum.getTime() + dauerMin * 60000).toISOString()
+      : null;
+    await aktualisieren(id, {
       symptomTypId: gewaehlterId,
       datum: datum.toISOString(),
+      endDate,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       intensitaet,
-      dauer: dauer ? parseInt(dauer, 10) : null,
       ausloser: ausloser.trim() || null,
       notiz: notiz.trim() || null,
     });
@@ -73,7 +80,7 @@ export default function SymptomBearbeitenScreen() {
         { text: 'Abbrechen', style: 'cancel' },
         {
           text: 'Löschen', style: 'destructive',
-          onPress: async () => { await loeschen(Number(id)); router.back(); },
+          onPress: async () => { await loeschen(id); router.back(); },
         },
       ]
     );

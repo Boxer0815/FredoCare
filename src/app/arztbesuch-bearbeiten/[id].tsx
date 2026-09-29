@@ -28,7 +28,7 @@ export default function ArztbesuchBearbeitenScreen() {
   const [optionalOffen, setOptionalOffen] = useState(false);
 
   useEffect(() => {
-    const gefunden = besuche.find((b) => b.id === Number(id));
+    const gefunden = besuche.find((b) => b.id === id);
     if (gefunden) {
       setBesuch(gefunden);
       setArztname(gefunden.arztname);
@@ -56,7 +56,7 @@ export default function ArztbesuchBearbeitenScreen() {
 
   async function speichern() {
     if (!arztname.trim()) return;
-    await aktualisieren(Number(id), {
+    await aktualisieren(id, {
       arztname: arztname.trim(),
       fachrichtung,
       datum: datum.toISOString().slice(0, 10),
@@ -75,7 +75,7 @@ export default function ArztbesuchBearbeitenScreen() {
         { text: 'Abbrechen', style: 'cancel' },
         {
           text: 'Löschen', style: 'destructive',
-          onPress: async () => { await loeschen(Number(id)); router.back(); },
+          onPress: async () => { await loeschen(id); router.back(); },
         },
       ]
     );

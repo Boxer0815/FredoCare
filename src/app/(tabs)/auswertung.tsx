@@ -55,7 +55,7 @@ function useAuswertungsDaten(eintraege: SymptomEintrag[], zeitraum: Zeitraum) {
     }));
 
     // 2. Häufigste Symptome
-    const typMap = new Map<number, { name: string; icon: string; farbe: string; anzahl: number }>();
+    const typMap = new Map<string, { name: string; icon: string; farbe: string; anzahl: number }>();
     for (const e of gefiltert) {
       if (!typMap.has(e.symptomTypId)) {
         typMap.set(e.symptomTypId, { name: e.symptomTypName, icon: e.symptomTypIcon, farbe: e.symptomTypFarbe, anzahl: 0 });
@@ -78,7 +78,7 @@ function useAuswertungsDaten(eintraege: SymptomEintrag[], zeitraum: Zeitraum) {
   }, [eintraege, zeitraum]);
 }
 
-function useIntensitaetsVerlauf(eintraege: SymptomEintrag[], typId: number | null, zeitraum: Zeitraum) {
+function useIntensitaetsVerlauf(eintraege: SymptomEintrag[], typId: string | null, zeitraum: Zeitraum) {
   return useMemo(() => {
     if (!typId) return [];
     const grenze = new Date();
@@ -133,7 +133,7 @@ export default function AuswertungScreen() {
   const { besuche, laden: besucheLaden, neu: besucheNeu } = useArztbesuche();
 
   const [zeitraum, setZeitraum] = useState<Zeitraum>(7);
-  const [gewaehlterTypId, setGewaehlterTypId] = useState<number | null>(null);
+  const [gewaehlterTypId, setGewaehlterTypId] = useState<string | null>(null);
 
   // Bericht für Arztbesuch
   const [von, setVon] = useState(() => {
@@ -142,7 +142,7 @@ export default function AuswertungScreen() {
   const [bis, setBis] = useState(() => {
     const d = new Date(); d.setHours(23, 59, 59, 0); return d;
   });
-  const [berichtTypIds, setBerichtTypIds] = useState<number[]>([]);
+  const [berichtTypIds, setBerichtTypIds] = useState<string[]>([]);
   const [exportLaeuft, setExportLaeuft] = useState(false);
   const [aktiveSchnellauswahl, setAktiveSchnellauswahl] = useState<string>('30d');
 

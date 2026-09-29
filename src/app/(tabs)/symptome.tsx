@@ -34,7 +34,7 @@ export default function SymptomeScreen() {
   const dunkel = useColorScheme() === 'dark';
   const { eintraege, laden, loeschen, neu } = useEintraege();
   const { typen } = useSymptomTypen();
-  const [filterTypId, setFilterTypId] = useState<number | null>(null);
+  const [filterTypId, setFilterTypId] = useState<string | null>(null);
 
   useFocusEffect(useCallback(() => { neu(); }, [neu]));
 
@@ -45,7 +45,7 @@ export default function SymptomeScreen() {
 
   const sektionen = useMemo(() => gruppiereNachTag(gefilterteEintraege), [gefilterteEintraege]);
 
-  function handleLoeschen(id: number, name: string) {
+  function handleLoeschen(id: string, name: string) {
     Alert.alert(
       'Eintrag löschen',
       `„${name}" wirklich löschen?`,
