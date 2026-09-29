@@ -1,11 +1,13 @@
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  useColorScheme, RefreshControl,
+  useColorScheme, RefreshControl, ActivityIndicator, Alert,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState, useMemo } from 'react';
 import { useEintraege, useSymptomTypen } from '../../hooks/useSymptome';
 import { useArztbesuche } from '../../hooks/useArztbesuche';
+import DatumZeitAuswahl from '../../components/DatumZeitAuswahl';
+import { arztberichtAlsPdfTeilen } from '../../utils/pdfExport';
 import BalkenChart from '../../components/charts/BalkenChart';
 import LinienChart from '../../components/charts/LinienChart';
 import HorizontalBalken from '../../components/charts/HorizontalBalken';
@@ -133,6 +135,17 @@ export default function AuswertungScreen() {
   const [zeitraum, setZeitraum] = useState<Zeitraum>(7);
   const [gewaehlterTypId, setGewaehlterTypId] = useState<number | null>(null);
 
+  // Bericht für Arztbesuch
+  const [von, setVon] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() - 30); d.setHours(0, 0, 0, 0); return d;
+  });
+  const [bis, setBis] = useState(() => {
+    const d = new Date(); d.setHours(23, 59, 59, 0); return d;
+  });
+  const [berichtTypIds, setBerichtTypIds] = useState<number[]>([]);
+  const [exportLaeuft, setExportLaeuft] = useState(false);
+  const [aktiveSchnellauswahl, setAktiveSchnellauswahl] = useState<string>('30d');
+
   const laden = eintraegeLaden || besucheLaden;
 
   useFocusEffect(useCallback(() => {
@@ -145,6 +158,39 @@ export default function AuswertungScreen() {
 
   const intensitaetsVerlauf = useIntensitaetsVerlauf(eintraege, gewaehlterTypId, zeitraum);
   const arztbesucheProMonat = useArztbesuchePro(besuche);
+
+  const gefilterteBerichtEintraege = useMemo(() => {
+    const vonStart = new Date(von); vonStart.setHours(0, 0, 0, 0);
+    const bisEnde = new Date(bis); bisEnde.setHours(23, 59, 59, 999);
+    return eintraege.filter((e) => {
+      const d = new Date(e.datum);
+      if (d < vonStart || d > bisEnde) return false;
+      if (berichtTypIds.length > 0 && !berichtTypIds.includes(e.symptomTypId)) return false;
+      return true;
+    });
+  }, [eintraege, von, bis, berichtTypIds]);
+
+  function setzeSchnellauswahl(key: string, tage?: number, monate?: number) {
+    const b = new Date(); b.setHours(23, 59, 59, 0);
+    const v = new Date();
+    if (tage !== undefined) v.setDate(v.getDate() - tage);
+    if (monate !== undefined) v.setMonth(v.getMonth() - monate);
+    v.setHours(0, 0, 0, 0);
+    setVon(v);
+    setBis(b);
+    setAktiveSchnellauswahl(key);
+  }
+
+  async function handleBerichtExport() {
+    setExportLaeuft(true);
+    try {
+      await arztberichtAlsPdfTeilen(gefilterteBerichtEintraege, von, bis);
+    } catch {
+      Alert.alert('Export fehlgeschlagen', 'Der Bericht konnte nicht erstellt werden.');
+    } finally {
+      setExportLaeuft(false);
+    }
+  }
 
   const hg = dunkel ? '#000' : '#F2F2F7';
   const textFarbe = dunkel ? '#FFF' : '#000';
@@ -268,6 +314,107 @@ export default function AuswertungScreen() {
           <BalkenChart daten={arztbesucheProMonat} dunkel={dunkel} farbe="#EF5B5B" />
         )}
       </KartenContainer>
+
+      {/* 6. Bericht für Arztbesuch */}
+      <KartenContainer titel="Bericht für Arztbesuch" dunkel={dunkel}>
+        {/* Schnellauswahl */}
+        <View style={styles.schnellReihe}>
+          {[
+            { key: '7d', label: '7 Tage', tage: 7 },
+            { key: '30d', label: '30 Tage', tage: 30 },
+            { key: '3m', label: '3 Monate', monate: 3 },
+            { key: '6m', label: '6 Monate', monate: 6 },
+          ].map(({ key, label, tage, monate }) => (
+            <TouchableOpacity
+              key={key}
+              style={[styles.schnellChip, { backgroundColor: aktiveSchnellauswahl === key ? '#5B8DEF' : chipHg }]}
+              onPress={() => setzeSchnellauswahl(key, tage, monate)}
+            >
+              <Text style={[styles.schnellChipText, { color: aktiveSchnellauswahl === key ? '#FFF' : textFarbe }]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Von */}
+        <Text style={[styles.berichtLabel, { color: subtextFarbe }]}>Von</Text>
+        <DatumZeitAuswahl
+          wert={von}
+          onChange={(d) => { setVon(d); setAktiveSchnellauswahl(''); }}
+          dunkel={dunkel}
+          nurDatum
+          maxDatum={bis}
+        />
+
+        {/* Bis */}
+        <Text style={[styles.berichtLabel, { color: subtextFarbe, marginTop: 10 }]}>Bis</Text>
+        <DatumZeitAuswahl
+          wert={bis}
+          onChange={(d) => { setBis(d); setAktiveSchnellauswahl(''); }}
+          dunkel={dunkel}
+          nurDatum
+          maxDatum={new Date()}
+        />
+
+        {/* Symptomfilter */}
+        {typen.length > 0 && (
+          <>
+            <Text style={[styles.berichtLabel, { color: subtextFarbe, marginTop: 12 }]}>
+              Symptomfilter (optional)
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typScrollView}>
+              <View style={styles.typReihe}>
+                {typen.map((t) => {
+                  const aktiv = berichtTypIds.includes(t.id);
+                  return (
+                    <TouchableOpacity
+                      key={t.id}
+                      style={[styles.typChip, { backgroundColor: aktiv ? t.farbe : chipHg }]}
+                      onPress={() => setBerichtTypIds((ids) =>
+                        aktiv ? ids.filter((id) => id !== t.id) : [...ids, t.id]
+                      )}
+                    >
+                      <Text style={styles.typChipIcon}>{t.icon}</Text>
+                      <Text style={[styles.typChipText, { color: aktiv ? '#FFF' : textFarbe }]}>{t.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </>
+        )}
+
+        {/* Vorschau */}
+        <View style={[styles.vorschauBox, { backgroundColor: chipHg }]}>
+          {gefilterteBerichtEintraege.length === 0 ? (
+            <Text style={[styles.vorschauText, { color: '#FF9500' }]}>
+              Keine Einträge im gewählten Zeitraum
+            </Text>
+          ) : (
+            <Text style={[styles.vorschauText, { color: textFarbe }]}>
+              <Text style={{ fontWeight: '700', color: '#5B8DEF' }}>{gefilterteBerichtEintraege.length}</Text>
+              {' '}Symptomeinträge gefunden
+            </Text>
+          )}
+        </View>
+
+        {/* Export-Button */}
+        <TouchableOpacity
+          style={[
+            styles.exportBtn,
+            (gefilterteBerichtEintraege.length === 0 || exportLaeuft) && styles.exportBtnDisabled,
+          ]}
+          onPress={handleBerichtExport}
+          disabled={gefilterteBerichtEintraege.length === 0 || exportLaeuft}
+        >
+          {exportLaeuft ? (
+            <ActivityIndicator color="#FFF" size="small" />
+          ) : (
+            <Text style={styles.exportBtnText}>Bericht erstellen &amp; teilen</Text>
+          )}
+        </TouchableOpacity>
+      </KartenContainer>
     </ScrollView>
   );
 }
@@ -303,4 +450,18 @@ const styles = StyleSheet.create({
   typChipIcon: { fontSize: 14 },
   typChipText: { fontSize: 13, fontWeight: '500' },
   hinweis: { fontSize: 12, marginTop: 8, textAlign: 'center' },
+  schnellReihe: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  schnellChip: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
+  schnellChipText: { fontSize: 13, fontWeight: '600' },
+  berichtLabel: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
+  vorschauBox: {
+    borderRadius: 10, padding: 12, marginTop: 12, alignItems: 'center',
+  },
+  vorschauText: { fontSize: 14, textAlign: 'center' },
+  exportBtn: {
+    backgroundColor: '#5B8DEF', borderRadius: 14, paddingVertical: 15,
+    alignItems: 'center', marginTop: 12,
+  },
+  exportBtnDisabled: { opacity: 0.4 },
+  exportBtnText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
 });
